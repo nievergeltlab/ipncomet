@@ -30,7 +30,7 @@ qsub_dir = '.qsub'		# store qsub shell files
 
 signal_command = 'qjob_done'
 begin_with_num = re.compile ( '^[0-9X]' )
-MIN_NUM_JOBS=200
+MIN_NUM_JOBS=200 
 HEAVY_JOBS_N=30
 __WHERE__=sys.stderr
 
@@ -585,7 +585,9 @@ def run_wait_poll ( job_files, sleep_time=__my_qsub_sleep_time__,
 
         passed_time += sleep_time
 
-	if ( len(waiting_files.keys()) == 0 ): break
+	if ( len(waiting_files.keys()) == 0 ): 
+		print >> sys.stderr, 'It says that there are no waiting files'
+		break
     # ---
 
     err_list = None
@@ -655,7 +657,7 @@ def run_with_num (job_files, num_in_queue=1000,
 
 	    sigfile = get_qsub_signal_name (ajob)
 
-	    # remove old one
+	    # remove old one : Adam : could be this file..
 	    if ( os.path.exists (sigfile) ): os.unlink ( sigfile )
 
 	    waiting_files[id] = QsubSignal (sigfile, id, ajob)
@@ -705,8 +707,13 @@ def run_with_num (job_files, num_in_queue=1000,
 					 str (len(waiting_files))
 
 	# there are current-running jobs, and no more jobs, get out
+ #Adam: I think it is stopping because jobs are not running yet, but this terminates the loop
+ #Basically what this is doing is, as long as all jobs have been submitted, it's going to terminate the while loop
+ #I make sure that there are no waiting files before it terminates!!
 	if not has_jobs_running (waiting_files.keys(), current_jobs) and \
-						cur >= len(job_files): break
+						cur >= len(job_files) and len(waiting_files) == 0: break
+
+
     # end of outer while loop
 
     # wait for 60 seconds, check again, sometimes, network is too slow
